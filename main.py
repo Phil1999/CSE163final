@@ -13,11 +13,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-path = '../datasets/coronavirus.csv'
+path = 'datasets/covid_19_data.csv'
 
 
-def load_data(shapefile):
-    pass
+def load_data(file):
+    df = pd.read_csv(file)
+    return df.head()
 
 
 def plotMap():
@@ -25,7 +26,7 @@ def plotMap():
 
 
 def main():
-    pass
+    print(load_data(path))
 
 
 if __name__ == '__main__':

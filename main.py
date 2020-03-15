@@ -3,8 +3,9 @@ NETID: phil1999
 Philip Lee
 Section AA
 
-
-TODO
+This file contains all the necessary methods to recreate all the plots
+for the Coronavirus analysis project. Simply run this file according to the
+reproduction section of the report and it will recreate all the plots.
 """
 # Colors
 ded = '#ff0000' # deaths - red
@@ -22,7 +23,6 @@ recovered = 'CSE163final/datasets/time_series_19-covid-Recovered.csv'
 deaths = 'CSE163final/datasets/time_series_19-covid-Deaths.csv'
 
 
-
 def load_data(file):
     """
     Takes in a filename and converts it into a dataframe
@@ -38,7 +38,9 @@ def load_data(file):
 
 def clean_data():
     """
-    Cleans the datasets so that I can work with them easier.
+    Cleans the confirmed, deaths, and recovered datasets taken from
+    https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series
+    and writes the resulting dataset as a csv file named 'covid-19-cleaned.csv'.
     """
     # Cleaning/manipulating the datasets
     c_df = load_data(confirmed)
@@ -74,9 +76,10 @@ def clean_data():
     # Create as a new csv
     clean_data.to_csv('CSE163final/covid-19-cleaned.csv', index=False)
 
+
 def plot_spread(df):
     """
-    Creates a plot indicating the spread of Coronavirus over time.
+    Takes in the dataframe and creates a plot showing the spread of Coronavirus.
     """
     temp = df.groupby('Date')['Recovered', 'Deaths', 'Active'].sum().reset_index()
     temp = temp.melt(id_vars="Date", value_vars=['Recovered', 'Deaths', 'Active'],
@@ -85,21 +88,24 @@ def plot_spread(df):
                     title='Number cases over time',
                     color_discrete_sequence = [rec, ded, act])
     plot.show()
-    
+
 
 def plot_status(df):
     """
-    Plots the latest status of the world on a map of the world.
+    Takes in the dataframe and creates a choropleth showing areas infected with
+    Coronavirus.
     """
     # Grab the latest data from the most recent date and group
     latest_data = df[df['Date'] == max(df['Date'])].reset_index()
-    latest_data_agg = latest_data.groupby('Country/Region')['Confirmed', 'Deaths', 'Recovered', 'Active'].sum().reset_index()
+    latest_data_agg = \
+        latest_data.groupby('Country/Region')['Confirmed', 'Deaths', 'Recovered', 'Active'].sum().reset_index()
     data = latest_data_agg
+    # Plot the data on a choropleth
     plot = px.choropleth(data, locations="Country/Region", 
                     locationmode='country names', color="Confirmed", 
                     hover_name="Country/Region", range_color=[1,2500], 
                     color_continuous_scale="Blues", 
-                    title='Countries with Confirmed Cases',
+                    title='Countries with Confirmed Cases', 
                     )
     plot.update(layout_coloraxis_showscale=False)
     plot.show()
@@ -107,15 +113,16 @@ def plot_status(df):
 
 def plot_china(df):
     """
-    Plots the current status of China by Province on a
-    horizontal bar
+    Uses the dataframe and plots the current status of China by 
+    Province on horizontal bar graphs.
     """
-    # Manipualte data to get what we want
+    # Manipulates data to get what we want
     latest_data = df[df['Date'] == max(df['Date'])].reset_index()
     china_latest = latest_data[latest_data['Country/Region']=='China']
     china_latest_grouped = \
         china_latest.groupby('Province/State')['Confirmed', 'Deaths', 'Recovered', 'Active'].sum().reset_index()
-    data = china_latest_grouped.sort_values('Confirmed', ascending=False).head(20).sort_values('Confirmed', ascending=True)
+    data = \
+        china_latest_grouped.sort_values('Confirmed', ascending=False).head(20).sort_values('Confirmed', ascending=True)
     # Plot the # confirmed cases by Province
     plot1 = px.bar(data, 
              x="Confirmed", y="Province/State", title='Top 20 Confirmed Cases in China', text='Confirmed', orientation='h', 
@@ -130,23 +137,26 @@ def plot_china(df):
     plot2.show()
     # Plot death cases
     plot3 = px.bar(data, 
-             x="Deaths", y="Province/State", title='Top 20 Deaths from Covid-19 in China', text='Deaths', orientation='h', 
-             width=700, height=700, range_x = [0, max(data['Deaths'])+500])
+             x="Deaths", y="Province/State", title='Top 20 Deaths from Covid-19 in China',
+              text='Deaths', orientation='h', 
+            width=700, height=700, range_x = [0, max(data['Deaths'])+500])
     plot3.update_traces(marker_color=ded, textposition='outside')
     plot3.show()
     # Plot Recovered cases
-    plot4 = px.bar(data, 
-             x="Recovered", y="Province/State", title='Top 20 Recovered from Covid-19 in China', text='Recovered', orientation='h', 
-             width=700, height=700, range_x = [0, max(data['Recovered'])+10000])
+    plot4 = px.bar(data, x="Recovered", y="Province/State",
+             title='Top 20 Recovered from Covid-19 in China',
+              text='Recovered', orientation='h', width=700,
+            height=700, range_x=[0, max(data['Recovered'])+10000])
     plot4.update_traces(marker_color=rec, textposition='outside')
     plot4.show()
 
 
 def main():
     clean_data()
-    df_parsed = pd.read_csv('CSE163final/covid-19-cleaned.csv', parse_dates=['Date'])
-    #plot_spread(df_parsed)
-    #plot_status(df_parsed)
+    df_parsed = \
+        pd.read_csv('CSE163final/covid-19-cleaned.csv', parse_dates=['Date'])
+    plot_spread(df_parsed)
+    plot_status(df_parsed)
     plot_china(df_parsed)
 
 
